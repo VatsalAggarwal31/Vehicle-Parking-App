@@ -1,0 +1,26 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+    Summary Page
+{% endblock %}
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+            style="max-width: 600px; border-width: 3px !important;">Parking Lot Summary & Revenue</h2>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+          <div class="col">
+            <div class="card">
+              <img src="{{ url_for('static', filename='ParkingLot_slots.png') }}" class="card-img-top" alt="ParkingLot_slots">
+            </div>
+          </div>
+          <div class="col">
+            <div class="card">
+              <img src="{{ url_for('static', filename='Total_Revenue_per_lot.png') }}" class="card-img-top" alt="Total_Revenue_per_lot">
+            </div>
+          </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}

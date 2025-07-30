@@ -1,0 +1,58 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+    User Details
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+            style="max-width: 500px; border-width: 3px !important;">Registered Users</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-3" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+             style="border-width: 3px !important;">
+          <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Full Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Phone Number</th>
+                        <th scope="col">Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if users %}
+                        {% for user in users %}
+                            <tr>
+                                <th scope="row">{{user.id}}</th>
+                                <td>{{user.username}}</td>
+                                <td>{{user.full_name}}</td>
+                                <td>{{user.email}}</td>
+                                <td>{{user.phone_number}}</td>
+                                <td>{{user.address}}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <p> No User Found</p>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+          </div>
+        </div>
+    </div>
+{% endblock %}

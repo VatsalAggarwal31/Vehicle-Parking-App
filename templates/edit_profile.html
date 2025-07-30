@@ -1,0 +1,57 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+    Edit Profile
+{% endblock %}
+
+{% block content %}
+
+    <h2 class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+        style="max-width: 500px; border-width: 3px !important;">Edit Your Profile</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} mt-3" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+        <div class="card card-custom mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <form action="/edit_profile" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username:</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{session.get('username')}}" required readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name:</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" value="{{session.get('full_name')}}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{session.get('email')}}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number (Optional):</label>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{session.get('phone_number' or '')}}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address (Optional):</label>
+                        <input type="text" class="form-control" id="address" name="address" value="{{session.get('address' or '')}}">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"
+                            href="{% if session.get('username') == 'admin' %}{{ url_for('admin_dashboard') }}
+                                {% else %}{{ url_for('user_dashboard') }}
+                                {% endif %}">Save Changes</button>
+                    <a href="{% if session.get('username') == 'admin' %}{{ url_for('admin_dashboard') }}
+                                {% else %}{{ url_for('user_dashboard') }}
+                                {% endif %}"
+                       class="btn btn-secondary ms-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+{% endblock %}

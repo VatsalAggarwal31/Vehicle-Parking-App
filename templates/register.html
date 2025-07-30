@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}
+Register - Vehicle Parking
+{% endblock %}
+{% block content %}
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card shadow p-4 rounded-3" style="max-width: 550px; width: 100%;">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">User Registration</h2>
+                {{ super() }}
+                <form id="registrationForm" action="/register" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username:</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name:</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number (Optional):</label>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="Enter your phone number">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address (Optional):</label>
+                        <input type="text" class="form-control" id="address" name="address" placeholder="Enter your address">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password:</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="confirmPassword" class="form-label">Confirm Password:</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password" placeholder="Confirm your password" required>
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-success">
+                            Register
+                        </button>
+                    </div>
+                    <div>
+                        <a href="/" class="text-decoration-underline text-primary">
+                            Already have an account? Login here
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

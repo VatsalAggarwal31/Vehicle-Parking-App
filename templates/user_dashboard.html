@@ -1,0 +1,267 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+    User Dashboard
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="container mt-4">
+            <h2 class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+                style="max-width: 500px; border-width: 3px !important;">Recent Parking History</h2>
+
+
+            <div class="card card-custom border-primary rounded text-center"
+                 style="border-width: 3px !important;">
+              <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                            <th scope="col">Reservation ID</th>
+                            <th scope="col">Parking Lot Name</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Vehicle Plate Number</th>
+                            <th scope="col">In Time</th>
+                            <th scope="col">Out Time</th>
+                            <th scope="col">Total Cost</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% if reserved_parking_spots %}
+                            {% for spots in reserved_parking_spots %}
+                                <tr>
+                                    <th scope="row">{{spots.id}}</th>
+                                    <td>
+                                        {% if spots.spot_id %}
+                                            {{spots.parking_spot.parking_lot.prime_location_name}}
+                                        {% else %}
+                                            Parking Lot Deleted
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if spots.spot_id %}
+                                            {{spots.parking_spot.parking_lot.address}}
+                                        {% else %}
+                                            Parking Lot Deleted
+                                        {% endif %}
+                                    </td>
+                                    <td>{{spots.vehicle_plate}}</td>
+                                    <td>{{spots.in_time.strftime('%Y-%m-%d %H:%M:%S')}}</td>
+                                    <td>
+                                        {% if spots.out_time %}
+                                            {{spots.out_time.strftime('%Y-%m-%d %H:%M:%S')}}
+                                        {% else %}
+                                            Active
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if spots.total_cost is not none %}
+                                            ₹{{spots.total_cost | int}}
+                                        {% else %}
+                                            Active
+                                        {% endif %}
+                                    </td>
+                                    {% if spots.is_active == True %}
+                                        <td><button type="button" class="btn btn-sm btn-danger"
+                                                popovertarget="release_slot{{ spots.id }}">Release</button></td>
+                                    {% else %}
+                                        <td><button type="button" class="btn btn-sm btn-success" disabled>Parked Out</button></td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">No Parking Reservation Found</td>
+                            </tr>
+                        {% endif %}
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="container mt-4">
+            <h2 class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+                style="max-width: 500px; border-width: 3px !important;">Available Parking Lots</h2>
+
+
+            <div class="card card-custom border-primary rounded text-center"
+                 style="border-width: 3px !important;">
+              <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                            <th scope="col">Parking Lot ID</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Price per Hour</th>
+                            <th scope="col">Address</th>
+                            <th scope="col">Pin Code</th>
+                            <th scope="col">Available Spots</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% if parking_lots %}
+                            {% for lots in parking_lots %}
+                                <tr>
+                                    <th scope="row">{{lots.id}}</th>
+                                    <td>{{lots.prime_location_name}}</td>
+                                    <td>{{lots.price}}</td>
+                                    <td>{{lots.address}}</td>
+                                    <td>{{lots.pin_code}}</td>
+                                    <td>{{lots.parking_spots.filter_by(status=False).count()}}</td>
+                                    {% if (lots.parking_spots.filter_by(status=False).count()) > 0%}
+                                        <td><button type="button" class="btn btn-sm btn-primary"
+                                                popovertarget="book_slot{{ lots.id }}">Book Slot</button></td>
+                                    {% else %}
+                                        <td><button type="button" class="btn btn-sm btn-outline-primary"
+                                                popovertarget="book_slot{{ lots.id }} disabled">Book Slot</button></td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">No Parking Lot Found</td>
+                            </tr>
+                        {% endif %}
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+
+    {% for lots in parking_lots %}
+        <div class="shadow-lg p-4" id="book_slot{{ lots.id }}" popover>
+            <form action="{{ url_for('book_spot', lot_id = lots.id) }}" method="post">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="modal-title mb-0 text-primary">Book Parking Spot</h4>
+                    <button type="button" class="btn-close" popovertarget="book_slot{{ lots.id }}"
+                            popovertargetaction="hide" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body px-0">
+                    <input type="hidden" name="action" value="book_slot">
+                    <input type="hidden" name="lot_id" value="{{ lots.id }}">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="parking_lot_id_{{ lots.id }}" class="form-label">Parking Lots ID</label>
+                            <input class="form-control" type="text" value="{{ lots.id }}"
+                                   aria-label="Disabled input example" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="parking_spot_id_{{ lots.parking_spots.id }}" class="form-label">Parking Spot
+                                ID</label>
+                            <input class="form-control" type="text" name="parking_spot_id"
+                                   value="{{ lots.parking_spots.filter_by(status=False).first().id }}"
+                                   aria-label="Disabled input example" readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="primeLocationName_{{ lots.id }}" class="form-label">Prime Location Name</label>
+                        <input class="form-control" type="text" value="{{ lots.prime_location_name }}"
+                               aria-label="Disabled input example" readonly>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="price_{{ lots.id }}" class="form-label">Price (per hour)</label>
+                            <input type="number" class="form-control" id="price_{{ lots.id }}" name="price"
+                                   value="{{ lots.price }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="available_spots_{{ lots.id }}" class="form-label">Available Spots</label>
+                            <input type="number" class="form-control" id="available_spots_{{ lots.id }}"
+                                   value="{{ lots.parking_spots.filter_by(status=False).count() }}" readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address_{{ lots.id }}" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="address_{{ lots.id }}" value="{{ lots.address }}"
+                               readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pinCode_{{ lots.id }}" class="form-label">Pin Code</label>
+                        <input type="text" class="form-control" id="pinCode_{{ lots.id }}" value="{{ lots.pin_code }}"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vehicle_plate" class="form-label">Vehicle Plate Number</label>
+                        <input type="text" class="form-control" id="vehicle_plate" name="vehicle_plate" value=""
+                               placeholder="Please Enter your Vehicle Number" required>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end pt-3">
+                    <button type="button" class="btn btn-secondary me-2" popovertarget="book_slot{{ lots.id }}"
+                            popovertargetaction="hide">Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">Book Slot</button>
+                </div>
+            </form>
+        </div>
+    {% endfor %}
+
+    {% if reserved_parking_spots %}
+        {% for spots in reserved_parking_spots %}
+            <div class="shadow-lg p-4" id="release_slot{{ spots.id }}" popover>
+                <form action="{{ url_for('release_book_spot', spot_id = spots.id) }}" method="post">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="modal-title mb-0 text-danger">Release Parking Spot</h4>
+                        <button type="button" class="btn-close" popovertarget="release_slot{{ spots.id }}"
+                                popovertargetaction="hide" aria-label="Close">
+                        </button>
+                    </div>
+                    <div class="modal-body px-0">
+                        <input type="hidden" name="action" value="release_book_spot">
+                        <input type="hidden" name="spot_id" value="{{ spots.id }}">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="reservation_id_{{ spots.id }}" class="form-label">Reservation ID</label>
+                                <input class="form-control" type="text"  value="{{ spots.id }}" aria-label="Disabled input example"  readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="parking_spot_name_{{ spots.parking_spot.id }}" class="form-label">Parking Spot ID</label>
+                                <input class="form-control" type="text" name="parking_spot_id" value="{{ spots.spot_id }}" aria-label="Disabled input example"  readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="parking_lot_name_{{ spots.id }}" class="form-label">Parking Lot Name</label>
+                            <input class="form-control" type="text" value="{% if spots.spot_id %}
+                                                                                {{spots.parking_spot.parking_lot.prime_location_name}}
+                                                                            {% else %}
+                                                                                Parking Lot has been deleted
+                                                                            {% endif %}"
+                                   aria-label="Disabled input example"  readonly>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="in_time_{{ spots.id }}" class="form-label">In Time</label>
+                                <input type="text" class="form-control" value="{{ spots.in_time }}" aria-label="Disabled input example" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="current_time" class="form-label">Current Time</label>
+                                <input type="text" class="form-control" id="current_time" value="{{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="vehicle_plate_{{ spots.id }}" class="form-label">Vehicle Plate Number</label>
+                            <input type="text" class="form-control" id="vehicle_plate" name="vehicle_plate" value="{{ spots.vehicle_plate }}" readonly>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end pt-3">
+                        <button type="button" class="btn btn-secondary me-2" popovertarget="release_slot{{ spots.id }}"
+                                popovertargetaction="hide">Close</button>
+                        <button type="submit" class="btn btn-primary">Release Slot</button>
+                    </div>
+                </form>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

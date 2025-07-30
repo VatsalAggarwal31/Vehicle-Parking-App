@@ -1,0 +1,220 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+    Admin Dashboard
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+            style="max-width: 500px; border-width: 3px !important;">Parking Lots</h2>
+        <div class="row justify-content-center">
+            {% if parking_lots %}
+                {% for lot in parking_lots %}
+                    <div class="col-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">{{ lot.prime_location_name }}</h5>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-warning"
+                                                popovertarget="editLot{{lot.id}}">
+                                        Edit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger ms-2"
+                                                popovertarget="deleteLot{{lot.id}}">
+                                        Delete
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="card-text mb-1">Address: {{ lot.address }}</p>
+                                <p class="card-text mb-1">Price: Rs {{ lot.price }} / hour</p>
+                                <p class="card-text mb-1">Max Spots: {{ lot.maximum_number_of_spots }}</p>
+                                <p class="card-text mb-1">Description: {{ lot.description or 'No description provided.' }}</p>
+                                {% set occupied_spots = lot.parking_spots | selectattr("status", "equalto", True) | list %}
+                                <p class="card-text text-success fw-bold mb-3">
+                                    (Occupied : {{(occupied_spots | length) }}/{{ lot.maximum_number_of_spots }})</p>
+                                <div class="container-fluid">
+                                    <div class="row row-cols-6 g-2">
+                                        {% for spot in lot.parking_spots %}
+                                            <div class="col">
+                                                <div class="parking-spot">
+                                                    {% if spot.status %}
+                                                        <button type="button" class="btn btn-danger fw-bold mb-1"
+                                                                popovertarget="viewOccupiedSpot{{spot.id}}">O
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="button" class="btn btn-success fw-bold mb-1" disabled>A
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center text-muted">No parking lots added yet. Click "+ Add Lot" to get started!</div>
+            {% endif %}
+        </div>
+
+        <div class="text-center">
+            <button type="button" class="btn btn-success btn-lg shadow-sm rounded-pill px-4 py-2 mt-3"
+                    data-bs-toggle="modal" data-bs-target="#addLotModal">
+            + Add Lot
+            </button>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addLotModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="/parking_lot" method="post">
+              <div class="modal-header">
+                <h5 class="modal-title">Add Parking Lot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                    <label for="primeLocationName" class="form-label">Prime Location Name</label>
+                    <input type="text" class="form-control" id="primeLocationName" name="prime_location_name" placeholder="e.g., Downtown Parking A" required>
+                </div>
+                <div class="mb-3">
+                    <label for="price" class="form-label">Price (per hour)</label>
+                    <input type="number" class="form-control" id="price" name="price" step="1" min="0" value="0" required>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address</label>
+                    <input type="text" class="form-control" id="address" name="address" placeholder="e.g., 123 Main St" required>
+                </div>
+                <div class="mb-3">
+                    <label for="pinCode" class="form-label">Pin Code</label>
+                    <input type="text" class="form-control" id="pinCode" name="pin_code" placeholder="e.g., 123456" required>
+                </div>
+                <div class="mb-3">
+                    <label for="maximumNumberOfSpots" class="form-label">Maximum Number of Spots</label>
+                    <input type="number" class="form-control" id="maximumNumberOfSpots" name="maximum_number_of_spots" min="1" value="10" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter a description for the parking lot..."></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+            </form>
+        </div>
+      </div>
+    </div>
+
+    {% for lot in parking_lots %}
+        <div class="shadow-lg p-4" id="editLot{{lot.id}}" popover>
+            <form action="{{ url_for('edit_parking_lot', lot_id = lot.id) }}" method="post">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="modal-title mb-0 text-primary">Edit Parking Lot</h4>
+                    <button type="button" class="btn-close" popovertarget="editLot{{lot.id}}"
+                            popovertargetaction="hide" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body px-0">
+                    <input type="hidden" name="action" value="update_lot">
+                    <input type="hidden" name="lot_id" value="{{ lot.id }}">
+
+                    <div class="mb-3">
+                        <label for="primeLocationName_{{ lot.id }}" class="form-label">Prime Location Name</label>
+                        <input class="form-control" type="text"  value="{{ lot.prime_location_name }}" aria-label="Disabled input example" disabled readonly>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="price_{{ lot.id }}" class="form-label">Price (per hour)</label>
+                            <input type="number" class="form-control" id="price_{{ lot.id }}" name="price"
+                                   step="1" min="0" value="{{ lot.price }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="maximumNumberOfSpots_{{ lot.id }}" class="form-label">Max Spots</label>
+                            <input type="number" class="form-control" id="maximumNumberOfSpots_{{ lot.id }}" name="maximum_number_of_spots" min="1" value="{{ lot.maximum_number_of_spots }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address_{{ lot.id }}" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="address_{{ lot.id }}" name="address" value="{{ lot.address }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pinCode_{{ lot.id }}" class="form-label">Pin Code</label>
+                        <input type="text" class="form-control" id="pinCode_{{ lot.id }}" name="pin_code" value="{{ lot.pin_code }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description_{{ lot.id }}" class="form-label">Description</label>
+                        <textarea class="form-control" id="description_{{ lot.id }}" name="description" rows="4">{{ lot.description or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end pt-3">
+                    <button type="button" class="btn btn-outline-secondary me-2" popovertarget="editLot{{lot.id}}" popovertargetaction="hide">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+        <div class="shadow-lg p-4" id="deleteLot{{lot.id}}" popover>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0 text-danger">Confirm Deletion</h5>
+                <button class="btn-close" popovertarget="deleteLot{{lot.id}}"
+                        popovertargetaction="hide" aria-label="Close">
+                </button>
+            </div>
+            <p class="text-black mb-4">Are you sure you want to delete this Parking Lot? <br> This action cannot be undone.</p>
+            <form action="{{ url_for('delete_parking_lot', lot_id = lot.id) }}" method="post">
+                <input type="hidden" name="action" value="delete_lot">
+                <input type="hidden" name="lot_id" value="{{ lot.id }}">
+                <div class="d-flex justify-content-end pt-3">
+                    <button type="button" class="btn btn-outline-secondary me-2" popovertarget="deleteLot{{lot.id}}" popovertargetaction="hide">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+            {% for spot in lot.parking_spots %}
+                <div class="shadow-lg p-4" id="viewOccupiedSpot{{spot.id}}" popover>
+                    <form action="{{ url_for('view_occupied_spot',spot_id = spot.id) }}" method="post">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="modal-title mb-0 text-black">View Occupied Spot Details</h4>
+                            <button type="button" class="btn-close" popovertarget="viewOccupiedSpot{{spot.id}}" popovertargetaction="hide" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-0">
+                            <input type="hidden" name="action" value="view_occupied_spot">
+                            <input type="hidden" name="spot_id" value="{{ spot.id }}">
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_{{ spot.id }}" class="form-label">Spot ID</label>
+                                    <input type="text" class="form-control" value="{{ spot.id }}"
+                                           aria-label="Disabled input example" disabled readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="parking_lot_id_{{ spot.id }}" class="form-label">Parking Lot ID</label>
+                                    <input type="number" class="form-control" name="price"
+                                           value="{{ spot.parking_lot_id }}" aria-label="Disabled input example"
+                                           disabled readonly>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="status_{{ spot.id }}" class="form-label">Is Spot Occupied</label>
+                                <input type="text" class="form-control" name="address" value="{{ spot.status }}" aria-label="Disabled input example" disabled readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="vehicle_plate_{{ spot.id }}" class="form-label">Vehicle Plate Number</label>
+                                <input type="text" class="form-control" name="pin_code" value="{{ spot.vehicle_plate }}" aria-label="Disabled input example" disabled readonly>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end pt-3">
+                            <button type="button" class="btn btn-primary" popovertarget="viewOccupiedSpot{{spot.id}}" popovertargetaction="hide">Close</button>
+                        </div>
+                    </form>
+                </div>
+            {% endfor %}
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+    Summary Page
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="card card-custom mx-auto border-primary rounded p-3 mb-4 mt-4 text-center"
+            style="max-width: 600px; border-width: 3px !important;">Expenditure and Summary</h2>
+        <div class="row row-cols-2 row-cols-md-2 g-4 justify-content-center">
+          <div class="col">
+            <div class="card">
+              <img src="{{ url_for('static', filename='Total_Expenditure_per_user_lot.png') }}" class="card-img-top" alt="Total_Expenditure_per_user_lot">
+            </div>
+          </div>
+        </div>
+    </div>
+{% endblock %}
